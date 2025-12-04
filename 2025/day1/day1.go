@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -22,35 +23,14 @@ func part1() func(op string) int {
 			panic(err)
 		}
 		cursor = (cursor + dir*num) % 100
+		if cursor < 0 {
+			cursor += 100
+		}
 		if cursor == 0 {
 			return 1
 		}
 		return 0
 	}
-}
-
-func main() {
-	f, err := os.Open("input.txt")
-	if err != nil {
-		panic(err)
-	}
-	r := bufio.NewReader(f)
-	defer f.Close()
-	var safe func(string) int
-	if os.Args[1] == "1" {
-		safe = part1()
-	} else {
-		safe = part2()
-	}
-	count := 0
-	for {
-		if s, err := r.ReadString('\n'); err == nil {
-			count += safe(s)
-		} else {
-			break
-		}
-	}
-	print(count)
 }
 
 func part2() func(string) int {
@@ -70,14 +50,53 @@ func part2() func(string) int {
 			panic(err)
 		}
 
-		cursor = cursor + dir*num
+		prev = cursor
+		fmt.Println(prev)
+		fmt.Println(op)
+		cursor = (cursor + dir*num) % 100
+		if cursor < 0 {
+			cursor += 100
+		}
 		count := num / 100
-		count += (float32(cursor) / 100.0)  2.0 ^ 0.5
-
 		if cursor == 0 {
 			count += 1
+			return count
 		}
-		cursor %= 100
+		if prev == 0 {
+			return count
+		}
+		if dir < 0 && cursor > prev {
+			count += 1
+		}
+		if dir > 0 && cursor < prev {
+			count += 1
+		}
+
 		return count
 	}
+}
+
+func main() {
+	f, err := os.Open("input.txt")
+	if err != nil {
+		panic(err)
+	}
+	r := bufio.NewReader(f)
+	defer f.Close()
+	var safe func(string) int
+	if os.Args[1] == "1" {
+		safe = part1()
+	} else {
+		safe = part2()
+	}
+	count := 0
+	for {
+		fmt.Printf("Count: %d\n", count)
+		if s, err := r.ReadString('\n'); err == nil {
+			count += safe(s)
+		} else {
+			break
+		}
+	}
+	print(count)
 }
