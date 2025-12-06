@@ -15,22 +15,23 @@ type Node struct {
 	next *Node
 }
 
-// Doesn't really work
+// Use linked list to track where to insert new ranges
+// New ranges will replace existing ranges any time the bounds would be extended
 func buildRangesCondensed(r string, root *Node) *Node {
 	parsed := strings.Split(r, "-")
-	b1, err := strconv.ParseInt(parsed[0], 10, 64)
+	beg, err := strconv.ParseInt(parsed[0], 10, 64)
 	if err != nil {
 		panic(err)
 	}
-	e1, err := strconv.ParseInt(parsed[1], 10, 64)
+	end, err := strconv.ParseInt(parsed[1], 10, 64)
 	if err != nil {
 		panic(err)
 	}
 
 	if root.beg == 0 && root.end == 0 {
 		*root = Node{
-			beg:  b1,
-			end:  e1,
+			beg:  beg,
+			end:  end,
 			prev: nil,
 			next: nil,
 		}
@@ -38,12 +39,11 @@ func buildRangesCondensed(r string, root *Node) *Node {
 	}
 	cursor := root
 	node := &Node{
-		beg:  b1,
-		end:  e1,
+		beg:  beg,
+		end:  end,
 		prev: nil,
 		next: nil,
 	}
-	inserted := false
 
 	for cursor != nil {
 		if node.end < cursor.beg {
@@ -63,9 +63,8 @@ func buildRangesCondensed(r string, root *Node) *Node {
 			}
 			node.beg = cursor.beg
 			replace(node, cursor)
-			inserted = true
 		}
-		if cursor.next == nil && !inserted {
+		if cursor.next == nil {
 			// Insert after, not worth its own function
 			node.prev = cursor
 			cursor.next = node
@@ -107,6 +106,7 @@ func replace(node *Node, cursor *Node) {
 	}
 }
 
+// Walk entire linked list, and sum the ranges together
 func countRanges(root *Node) int64 {
 	var sum int64 = 0
 	cursor := root
